@@ -13,7 +13,7 @@ func ConnectToDB(cfg *config.Config) (*sqlx.DB, error) {
 	var db *sqlx.DB
 	var err error
 	maxAttempts := 10
-	databaseURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+	databaseURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	for i := 0; i < maxAttempts; i++ {
 		log.Printf("connenting to %s", databaseURL)

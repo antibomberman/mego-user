@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users
     email      varchar(255) UNIQUE,
     phone varchar(255),
     avatar varchar(255),
+    password varchar(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by varchar(255),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

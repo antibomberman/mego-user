@@ -1,34 +1,36 @@
 package models
 
+import (
+	"database/sql"
+	"time"
+)
+
 type User struct {
-	Id         string `db:"id" json:"id"`
-	FirstName  string `db:"first_name" json:"first_name"`
-	MiddleName string `db:"middle_name" json:"middle_name"`
-	LastName   string `db:"last_name" json:"last_name"`
-	Email      string `db:"email" json:"email"`
-	Password   string `db:"password" json:"-"`
-	Phone      string `db:"phone" json:"phone"`
-	Avatar     string `db:"avatar" json:"avatar"`
-	CreatedAt  string `db:"created_at" json:"created_at"`
-	CreatedBy  string `db:"created_by" json:"created_by"`
-	UpdatedAt  string `db:"updated_at" json:"updated_at"`
-	UpdatedBy  string `db:"updated_by" json:"updated_by"`
-	DeletedAt  string `db:"deleted_at" json:"deleted_at"`
-	DeletedBy  string `db:"deleted_by" json:"deleted_by"`
+	Id         string         `db:"id" json:"id"`
+	FirstName  sql.NullString `db:"first_name" json:"first_name"`
+	MiddleName sql.NullString `db:"middle_name" json:"middle_name"`
+	LastName   sql.NullString `db:"last_name" json:"last_name"`
+	Email      sql.NullString `db:"email" json:"email"`
+	Password   sql.NullString `db:"password" json:"-"`
+	Phone      sql.NullString `db:"phone" json:"phone"`
+	Avatar     sql.NullString `db:"avatar" json:"avatar"`
+	CreatedAt  sql.NullTime   `db:"created_at" json:"created_at"`
+	UpdatedAt  sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt  sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
 type UserDetails struct {
-	Id         string   `db:"id" json:"id"`
-	FirstName  string   `db:"first_name" json:"first_name"`
-	MiddleName string   `db:"middle_name" json:"middle_name"`
-	LastName   string   `db:"last_name" json:"last_name"`
-	Email      string   `db:"email" json:"email"`
-	Phone      string   `db:"phone" json:"phone"`
-	Avatar     string   `db:"avatar" json:"avatar"`
-	CreatedAt  string   `db:"created_at" json:"created_at"`
-	UpdatedAt  string   `db:"updated_at" json:"updated_at"`
-	DeletedAt  string   `db:"deleted_at" json:"deleted_at"`
-	Roles      []string `db:"roles" json:"roles"`
+	Id         string    `db:"id" json:"id"`
+	FirstName  string    `db:"first_name" json:"first_name"`
+	MiddleName string    `db:"middle_name" json:"middle_name"`
+	LastName   string    `db:"last_name" json:"last_name"`
+	Email      string    `db:"email" json:"email"`
+	Phone      string    `db:"phone" json:"phone"`
+	Avatar     string    `db:"avatar" json:"avatar"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
+	DeletedAt  time.Time `db:"deleted_at" json:"deleted_at"`
+	Roles      []string  `db:"roles" json:"roles"`
 }
 
 type CreateUserRequest struct {

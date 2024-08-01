@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 )
 
@@ -33,7 +34,12 @@ func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*us
 	userResponses := make([]*userGrpc.UserDetails, len(users))
 	for i, user := range users {
 		userResponses[i] = &userGrpc.UserDetails{
-			FirstName: user.FirstName,
+			FirstName:  user.FirstName,
+			MiddleName: user.MiddleName,
+			LastName:   user.LastName,
+			Email:      user.Email,
+			Phone:      user.Phone,
+			//CreatedAt: post.CreatedAt.Unix(),
 			//CreatedAt: post.CreatedAt.Unix(),
 		}
 	}
@@ -43,19 +49,24 @@ func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*us
 		NexPageToken: nextPageToken,
 	}, nil
 }
-
 func (s serverAPI) GetById(ctx context.Context, req *userGrpc.Id) (*userGrpc.UserDetails, error) {
+	log.Println("GetById", req.Id)
 	userDetails, err := s.service.GetById(req.Id)
-	log.Printf("Error getting user: %v", err)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "User not found")
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-
 	return &userGrpc.UserDetails{
-		FirstName: userDetails.FirstName,
-		//CreatedAt: post.CreatedAt.Unix(),
+		Id:         userDetails.Id,
+		FirstName:  userDetails.FirstName,
+		MiddleName: userDetails.MiddleName,
+		LastName:   userDetails.LastName,
+		Email:      userDetails.Email,
+		Phone:      userDetails.Phone,
+		Avatar:     userDetails.Avatar,
+		CreatedAt:  timestamppb.New(userDetails.CreatedAt),
+		UpdatedAt:  timestamppb.New(userDetails.UpdatedAt),
+		DeletedAt:  timestamppb.New(userDetails.DeletedAt),
 	}, nil
-
 }
 func (s serverAPI) GetByEmail(context.Context, *userGrpc.Email) (*userGrpc.UserDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByEmail not implemented")
