@@ -4,7 +4,7 @@ dotenv: ['.env']
 tasks:
   m:up:
     cmds:
-      - goose -dir migrations postgres  "postgresql://user:password@localhost:5432/user?sslmode=disable" up
+      - goose -dir migrations mysql   "user:password@/user" up
     silent: true
   m:reset:
     cmds:

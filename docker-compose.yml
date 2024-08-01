@@ -1,19 +1,25 @@
 version: "3.9"
 services:
-  postgres:
-    image: postgres:14.8-alpine3.18
+  mysql:
+    image: mysql:8.0
     container_name: mego_user_db
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_PORT: ${DB_PORT}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
-      - ./tmp/postgres:/var/lib/postgresql/data
+      - ./tmp/mysql:/var/lib/mysql
     ports:
       - "${DB_PORT}:${DB_PORT}"
+    command:
+      - --table_definition_cache=100
+      - --performance_schema=0
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb_use_native_aio=0
     networks:
       - mego_network
+
   redis:
     container_name: mego_redis
     image: redis:6.2.6-alpine
@@ -23,13 +29,14 @@ services:
       - ./tmp/redis:/data
     networks:
       - mego_network
+
   mego_user:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: mego-user
     depends_on:
-      - postgres
+      - mysql
       - redis
     ports:
       - "${USER_SERVICE_SERVER_PORT}:${USER_SERVICE_SERVER_PORT}"
