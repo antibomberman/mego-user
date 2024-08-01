@@ -27,6 +27,7 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	userDetails := models.UserDetails{
 		Id:        user.Id,
 		FirstName: user.FirstName,

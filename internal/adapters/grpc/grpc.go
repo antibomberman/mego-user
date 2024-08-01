@@ -46,7 +46,7 @@ func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*us
 
 func (s serverAPI) GetById(ctx context.Context, req *userGrpc.Id) (*userGrpc.UserDetails, error) {
 	userDetails, err := s.service.GetById(req.Id)
-
+	log.Printf("Error getting user: %v", err)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "User not found")
 	}
