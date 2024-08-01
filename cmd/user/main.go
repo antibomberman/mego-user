@@ -27,7 +27,7 @@ func main() {
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 
-	l, err := net.Listen("tcp", ":"+cfg.ServerPort)
+	l, err := net.Listen("tcp", ":"+cfg.UserServiceServerPort)
 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -35,7 +35,7 @@ func main() {
 
 	gRPC := grpc.NewServer()
 	adapter.Register(gRPC, cfg, userService)
-	log.Println("Server started on port", cfg.ServerPort)
+	log.Println("Server started on port", cfg.UserServiceServerPort)
 	if err := gRPC.Serve(l); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

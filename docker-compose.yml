@@ -4,20 +4,21 @@ services:
     image: postgres:14.8-alpine3.18
     container_name: mego_user_db
     environment:
-      POSTGRES_DB: "user"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PORT: ${DB_PORT}
     volumes:
       - ./tmp/postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     networks:
       - mego_network
   redis:
     container_name: mego_redis
     image: redis:6.2.6-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - ./tmp/redis:/data
     networks:
@@ -31,9 +32,7 @@ services:
       - postgres
       - redis
     ports:
-      - "8080:8080"
-    environment:
-      DATABASE_URL: "postgresql://user:password@postgres:5432/user?sslmode=disable"
+      - "${USER_SERVICE_SERVER_PORT}:${USER_SERVICE_SERVER_PORT}"
     networks:
       - mego_network
 

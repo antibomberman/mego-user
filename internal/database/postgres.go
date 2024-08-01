@@ -13,9 +13,11 @@ func ConnectToDB(cfg *config.Config) (*sqlx.DB, error) {
 	var db *sqlx.DB
 	var err error
 	maxAttempts := 10
+	databaseURL := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+
 	for i := 0; i < maxAttempts; i++ {
-		log.Printf("connenting to %s", cfg.DatabaseURL)
-		db, err = sqlx.Open("postgres", cfg.DatabaseURL)
+		log.Printf("connenting to %s", databaseURL)
+		db, err = sqlx.Open("postgres", databaseURL)
 		if err == nil {
 			err = db.Ping()
 			if err == nil {
