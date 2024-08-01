@@ -1,10 +1,10 @@
 version: '3'
-dotenv: ['./config/local.yaml']
+dotenv: ['.env']
 
 tasks:
   m:up:
     cmds:
-      - goose -dir migrations postgres "$DATABASE_URL" up
+      - goose -dir migrations postgres  "postgresql://user:password@localhost:5432/user?sslmode=disable" up
     silent: true
   m:reset:
     cmds:

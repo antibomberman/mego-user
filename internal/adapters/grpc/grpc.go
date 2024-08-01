@@ -44,8 +44,18 @@ func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*us
 	}, nil
 }
 
-func (s serverAPI) GetById(context.Context, *userGrpc.Id) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
+func (s serverAPI) GetById(ctx context.Context, req *userGrpc.Id) (*userGrpc.UserDetails, error) {
+	userDetails, err := s.service.GetById(req.Id)
+
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "User not found")
+	}
+
+	return &userGrpc.UserDetails{
+		FirstName: userDetails.FirstName,
+		//CreatedAt: post.CreatedAt.Unix(),
+	}, nil
+
 }
 func (s serverAPI) GetByEmail(context.Context, *userGrpc.Email) (*userGrpc.UserDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByEmail not implemented")
