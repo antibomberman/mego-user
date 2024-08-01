@@ -3,9 +3,9 @@ package main
 import (
 	adapter "github.com/antibomberman/mego-user/internal/adapters/grpc"
 	"github.com/antibomberman/mego-user/internal/config"
+	"github.com/antibomberman/mego-user/internal/database"
 	"github.com/antibomberman/mego-user/internal/repositories"
 	"github.com/antibomberman/mego-user/internal/services"
-	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -14,7 +14,7 @@ import (
 func main() {
 	cfg := config.Load()
 	log.Printf("Config: %+v", cfg)
-	db, err := sqlx.Open("postgres", cfg.DatabaseURL)
+	db, err := database.ConnectToDB(cfg)
 	defer db.Close()
 
 	if err != nil {
@@ -35,6 +35,7 @@ func main() {
 
 	gRPC := grpc.NewServer()
 	adapter.Register(gRPC, cfg, userService)
+	log.Println("Server started on port", cfg.ServerPort)
 	if err := gRPC.Serve(l); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
