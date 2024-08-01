@@ -43,3 +43,22 @@ func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*us
 		NexPageToken: nextPageToken,
 	}, nil
 }
+
+func (s serverAPI) GetById(context.Context, *userGrpc.Id) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
+}
+func (s serverAPI) GetByEmail(context.Context, *userGrpc.Email) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByEmail not implemented")
+}
+func (s serverAPI) GetByToken(context.Context, *userGrpc.Token) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByToken not implemented")
+}
+func (s serverAPI) Create(context.Context, *userGrpc.CreateUserRequest) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (s serverAPI) Update(context.Context, *userGrpc.UpdateUserRequest) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (s serverAPI) Delete(context.Context, *userGrpc.Id) (*userGrpc.UserDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}

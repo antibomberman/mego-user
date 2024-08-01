@@ -12,3 +12,12 @@ type UserService interface {
 type userService struct {
 	userRepository repositories.UserRepository
 }
+
+func NewUserService(userRepo repositories.UserRepository) UserService {
+	return &userService{userRepository: userRepo}
+}
+
+func (s *userService) Find(pageSize int, pageToken, search string) ([]models.User, string, error) {
+
+	return []models.User{}, "", nil
+}
