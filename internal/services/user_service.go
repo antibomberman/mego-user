@@ -24,7 +24,7 @@ type userService struct {
 }
 
 func NewUserService(userRepo repositories.UserRepository, secure secure.Secure) UserService {
-	return &userService{userRepository: userRepo}
+	return &userService{userRepository: userRepo, secure: secure}
 }
 
 func (s *userService) Find(pageSize int, pageToken, search string) ([]models.UserDetails, string, error) {
@@ -79,19 +79,23 @@ func (s *userService) GetByPhone(phone string) (*models.UserDetails, error) {
 func (s *userService) LoginByEmail(email, code string) (string, error) {
 	user, err := s.userRepository.GetByEmail(email)
 	if err != nil {
+		log.Printf("Error getting user by email: %v", err)
 		return "", fmt.Errorf("invalid email")
 	}
 
 	savedCode, err := s.userRepository.GetEmailCode(email)
 	if err != nil {
+		log.Printf("Error getting email code: %v", err)
 		return "", fmt.Errorf("invalid code")
 	}
 	if savedCode != code {
+		log.Printf("Invalid code != saved code")
 		return "", fmt.Errorf("invalid code")
 	}
 
 	token, err := s.secure.Generate(user.Id)
 	if err != nil {
+		log.Printf("Error generating token: %v", err)
 		return "", fmt.Errorf("error generating token: %v", err)
 	}
 	return token, nil

@@ -49,4 +49,5 @@ func main() {
 	if err := gRPC.Serve(l); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+	log.Println("Server stopped")
 }
