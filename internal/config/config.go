@@ -12,6 +12,7 @@ type Config struct {
 	DBHost     string `env:"DB_HOST" required:"true"`
 	DBPort     string `env:"DB_PORT" required:"true"`
 
+	RedisHost string `env:"REDIS_HOST" required:"true"`
 	RedisPort string `env:"REDIS_PORT" required:"true"`
 
 	JWTSecret             string `env:"JWT_SECRET" required:"true"`

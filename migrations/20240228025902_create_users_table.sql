@@ -11,11 +11,8 @@ CREATE TABLE IF NOT EXISTS users
     avatar varchar(255),
     password varchar(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by varchar(255),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by varchar(255),
-    deleted_at TIMESTAMP ,
-    deleted_by varchar(255)
+    deleted_at TIMESTAMP
 );
 -- +goose StatementEnd
 

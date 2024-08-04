@@ -1,19 +1,16 @@
 package grpc
 
 import (
-	"context"
 	userGrpc "github.com/antibomberman/mego-protos/gen/go/user"
 	"github.com/antibomberman/mego-user/internal/config"
 	"github.com/antibomberman/mego-user/internal/services"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	"log"
 )
 
 type serverAPI struct {
 	userGrpc.UnimplementedUserServiceServer
+	userGrpc.UnimplementedAuthServiceServer
+
 	service services.UserService
 	cfg     *config.Config
 }
@@ -23,63 +20,8 @@ func Register(gRPC *grpc.Server, cfg *config.Config, service services.UserServic
 		service: service,
 		cfg:     cfg,
 	})
-}
-func (s serverAPI) Find(ctx context.Context, req *userGrpc.FindUserRequest) (*userGrpc.FindUserResponse, error) {
-	users, nextPageToken, err := s.service.Find(int(req.PageSize), req.PageToken, req.Search)
-	if err != nil {
-		log.Printf("Error getting posts: %v", err)
-		return nil, status.Error(codes.Internal, "Failed to retrieve posts")
-	}
-
-	userResponses := make([]*userGrpc.UserDetails, len(users))
-	for i, user := range users {
-		userResponses[i] = &userGrpc.UserDetails{
-			FirstName:  user.FirstName,
-			MiddleName: user.MiddleName,
-			LastName:   user.LastName,
-			Email:      user.Email,
-			Phone:      user.Phone,
-			//CreatedAt: post.CreatedAt.Unix(),
-			//CreatedAt: post.CreatedAt.Unix(),
-		}
-	}
-
-	return &userGrpc.FindUserResponse{
-		Users:        userResponses,
-		NexPageToken: nextPageToken,
-	}, nil
-}
-func (s serverAPI) GetById(ctx context.Context, req *userGrpc.Id) (*userGrpc.UserDetails, error) {
-	log.Println("GetById", req.Id)
-	userDetails, err := s.service.GetById(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
-	}
-	return &userGrpc.UserDetails{
-		Id:         userDetails.Id,
-		FirstName:  userDetails.FirstName,
-		MiddleName: userDetails.MiddleName,
-		LastName:   userDetails.LastName,
-		Email:      userDetails.Email,
-		Phone:      userDetails.Phone,
-		Avatar:     userDetails.Avatar,
-		CreatedAt:  timestamppb.New(userDetails.CreatedAt),
-		UpdatedAt:  timestamppb.New(userDetails.UpdatedAt),
-		DeletedAt:  timestamppb.New(userDetails.DeletedAt),
-	}, nil
-}
-func (s serverAPI) GetByEmail(context.Context, *userGrpc.Email) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByEmail not implemented")
-}
-func (s serverAPI) GetByToken(context.Context, *userGrpc.Token) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByToken not implemented")
-}
-func (s serverAPI) Create(context.Context, *userGrpc.CreateUserRequest) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (s serverAPI) Update(context.Context, *userGrpc.UpdateUserRequest) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
-}
-func (s serverAPI) Delete(context.Context, *userGrpc.Id) (*userGrpc.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+	userGrpc.RegisterAuthServiceServer(gRPC, &serverAPI{
+		service: service,
+		cfg:     cfg,
+	})
 }

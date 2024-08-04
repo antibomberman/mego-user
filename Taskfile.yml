@@ -4,7 +4,7 @@ dotenv: ['.env']
 tasks:
   m:up:
     cmds:
-      - goose -dir migrations mysql   "user:password@/user" up
+      - goose -dir migrations mysql   "user:password@/user?parseTime=true" up
     silent: true
   m:reset:
     cmds:
