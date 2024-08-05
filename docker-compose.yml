@@ -1,26 +1,38 @@
 version: "3.9"
 services:
-  mysql:
-    image: mysql:8.0
+#  mysql:
+#    image: mysql:8.0
+#    container_name: mego_user_db
+#    environment:
+#      MYSQL_DATABASE: ${DB_NAME}
+#      MYSQL_USER: ${DB_USER}
+#      MYSQL_PASSWORD: ${DB_PASSWORD}
+#      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+#    volumes:
+#      - ./tmp/mysql:/var/lib/mysql
+#    ports:
+#      - "${DB_PORT}:${DB_PORT}"
+#    command:
+#      - --table_definition_cache=100
+#      - --performance_schema=0
+#      - --default-authentication-plugin=mysql_native_password
+#      - --innodb_use_native_aio=0
+#      - --log_error_verbosity=2
+#    networks:
+#      - mego_network
+  postgres:
+    image: postgres:14.8-alpine3.18
     container_name: mego_user_db
     environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
-      - ./tmp/mysql:/var/lib/mysql
+      - ./tmp/postgres:/var/lib/postgresql/data
     ports:
       - "${DB_PORT}:${DB_PORT}"
-    command:
-      - --table_definition_cache=100
-      - --performance_schema=0
-      - --default-authentication-plugin=mysql_native_password
-      - --innodb_use_native_aio=0
-      - --log_error_verbosity=2
     networks:
       - mego_network
-
   redis:
     container_name: mego_redis
     image: redis:6.2.6-alpine
@@ -37,7 +49,7 @@ services:
       dockerfile: Dockerfile
     container_name: mego-user
     depends_on:
-      - mysql
+      - postgres
       - redis
     ports:
       - "${USER_SERVICE_SERVER_PORT}:${USER_SERVICE_SERVER_PORT}"

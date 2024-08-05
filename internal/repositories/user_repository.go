@@ -2,8 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/antibomberman/mego-user/internal/models"
 
@@ -17,7 +15,7 @@ type UserRepository interface {
 	GetById(string) (*models.User, error)
 	GetByEmail(string) (*models.User, error)
 	GetByPhone(string) (*models.User, error)
-	Find() ([]models.User, error)
+	Find(startIndex int, size int, sort, search string) ([]models.User, error)
 	Update(user *models.User) error
 	Delete(id string) error
 	SetEmailCode(id string, code string) error
@@ -35,32 +33,46 @@ func NewUserRepository(db *sqlx.DB, rdb *redis.Client) UserRepository {
 	}
 }
 
-func (r *userRepository) Find() ([]models.User, error) {
+func (r *userRepository) Find(startIndex int, size int, sort, search string) ([]models.User, error) {
 	var users []models.User
-	err := r.db.Select(&users, "SELECT * FROM users")
+	query := "SELECT * FROM users"
+	log.Println(search)
+	if search != "" {
+		log.Printf("Search query: %s", query)
+		query += " WHERE first_name LIKE '% " + search + " %'"
+	}
+
+	switch sort {
+	case "0":
+		query += " ORDER BY created_at DESC"
+	case "1":
+		query += " ORDER BY created_at ASC"
+	default:
+		query += " ORDER BY created_at DESC"
+	}
+
+	err := r.db.Select(&users, query+" OFFSET $1 LIMIT $2", startIndex, size)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, err
 	}
+	if len(users) == 0 {
+		return []models.User{}, nil
+	}
+
 	return users, nil
 }
 func (r *userRepository) GetById(id string) (*models.User, error) {
 	var user models.User
-	err := r.db.Get(&user, "SELECT * FROM users WHERE id = ?", id)
+	err := r.db.Get(&user, "SELECT * FROM users WHERE id = $1", id)
 	if err != nil {
 		log.Printf("Error getting user by id: %v", err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return &user, nil
 }
 func (r *userRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := r.db.Get(&user, "SELECT * FROM users WHERE email = ?", email)
+	err := r.db.Get(&user, "SELECT * FROM users WHERE email = $1", email)
 	if err != nil {
 		log.Printf("Error getting user by email: %v", err)
 		return nil, err
@@ -71,9 +83,7 @@ func (r *userRepository) GetByPhone(phone string) (*models.User, error) {
 	var user models.User
 	err := r.db.Get(&user, "SELECT * FROM users WHERE phone = $1", phone)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
+		log.Printf("Error getting user by phone: %v", err)
 		return nil, err
 	}
 	return &user, nil

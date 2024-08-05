@@ -2,14 +2,16 @@ package services
 
 import (
 	"fmt"
+	"github.com/antibomberman/mego-user/internal/dto"
 	"github.com/antibomberman/mego-user/internal/models"
 	"github.com/antibomberman/mego-user/internal/repositories"
 	"github.com/antibomberman/mego-user/internal/secure"
+	"github.com/antibomberman/mego-user/pkg/utils"
 	"log"
 )
 
 type UserService interface {
-	Find(pageSize int, pageToken, search string) ([]models.UserDetails, string, error)
+	Find(pageSize int, pageToken, sort, search string) ([]*models.UserDetails, string, error)
 	GetById(string) (*models.UserDetails, error)
 	LoginByEmail(email, code string) (string, error)
 	LoginByEmailSendCode(email string) error
@@ -27,9 +29,35 @@ func NewUserService(userRepo repositories.UserRepository, secure secure.Secure) 
 	return &userService{userRepository: userRepo, secure: secure}
 }
 
-func (s *userService) Find(pageSize int, pageToken, search string) ([]models.UserDetails, string, error) {
+func (s *userService) Find(pageSize int, pageToken, sort, search string) ([]*models.UserDetails, string, error) {
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	startIndex := 0
 
-	return []models.UserDetails{}, "", nil
+	if pageToken != "" {
+		var err error
+		startIndex, err = utils.DecodePageToken(pageToken)
+		if err != nil {
+			log.Printf("Error decoding page token: %v", err)
+		}
+	}
+
+	users, err := s.userRepository.Find(startIndex, pageSize+1, sort, search)
+	if err != nil {
+		log.Printf("Error getting users: %v", err)
+		return nil, "", err
+	}
+	var nextPageToken string
+	if len(users) > pageSize {
+		nextPageToken = utils.EncodePageToken(startIndex + pageSize)
+		users = users[:pageSize]
+	}
+	var userDetails []*models.UserDetails
+	for _, user := range users {
+		userDetails = append(userDetails, dto.ToUserDetail(&user))
+	}
+	return userDetails, nextPageToken, nil
 }
 func (s *userService) GetById(id string) (*models.UserDetails, error) {
 	user, err := s.userRepository.GetById(id)
@@ -39,7 +67,7 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 		return nil, err
 	}
 
-	userDetails := models.UserDetails{
+	return &models.UserDetails{
 		Id:         user.Id,
 		FirstName:  user.FirstName.String,
 		MiddleName: user.MiddleName.String,
@@ -47,12 +75,10 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 		Email:      user.Email.String,
 		Phone:      user.Phone.String,
 		Avatar:     user.Avatar.String,
+		CreatedAt:  user.CreatedAt.Time,
+		UpdatedAt:  user.UpdatedAt.Time,
 		DeletedAt:  user.DeletedAt.Time,
-		CreatedAt:  user.DeletedAt.Time,
-		UpdatedAt:  user.DeletedAt.Time,
-	}
-
-	return &userDetails, nil
+	}, nil
 }
 func (s *userService) GetByToken(token string) (*models.UserDetails, error) {
 	claims, err := s.secure.Parse(token)
@@ -71,7 +97,7 @@ func (s *userService) GetByEmail(email string) (*models.UserDetails, error) {
 func (s *userService) GetByPhone(phone string) (*models.UserDetails, error) {
 	user, err := s.userRepository.GetByPhone(phone)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email")
+		return nil, fmt.Errorf("invalid phone")
 	}
 	return s.GetById(user.Id)
 }

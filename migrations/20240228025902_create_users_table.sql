@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users
 (
-    id       BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id      SERIAL PRIMARY KEY,
     first_name varchar(255),
     middle_name varchar(255),
     last_name  varchar(255),
