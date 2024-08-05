@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mego-user
+    container_name: mego_user
     depends_on:
       - postgres
       - redis
@@ -58,4 +58,4 @@ services:
 
 networks:
   mego_network:
-    driver: bridge
+    external: true
