@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"github.com/antibomberman/mego-user/internal/models"
 
 	"github.com/jmoiron/sqlx"
@@ -16,7 +15,8 @@ type UserRepository interface {
 	GetByEmail(string) (*models.User, error)
 	GetByPhone(string) (*models.User, error)
 	Find(startIndex int, size int, sort, search string) ([]models.User, error)
-	Update(user *models.User) error
+	Create(data *models.User) (*models.User, error)
+	Update(data *models.User) error
 	Delete(id string) error
 	SetEmailCode(id string, code string) error
 	GetEmailCode(id string) (string, error)
@@ -88,19 +88,19 @@ func (r *userRepository) GetByPhone(phone string) (*models.User, error) {
 	}
 	return &user, nil
 }
-func (r *userRepository) Create(user *models.User) (models.User, error) {
-	result, err := r.db.Exec("INSERT INTO users (id, first_name, middle_name, last_name, email, phone, password, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())",
-		user.Id, user.FirstName, user.MiddleName, user.LastName, user.Email, user.Phone, user.Password)
-	if err != nil {
-		return *user, err
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return *user, err
-	}
-	user.Id = fmt.Sprintf("%d", id)
+func (r *userRepository) Create(data *models.User) (*models.User, error) {
+	query := `
+		INSERT INTO users (first_name, middle_name, last_name, email, phone)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
+    `
+	id := ""
+	err := r.db.QueryRowx(query, data.FirstName, data.MiddleName, data.LastName, data.Email, data.Phone).Scan(&id)
 
-	return *user, nil
+	if err != nil {
+		return data, err
+	}
+	return r.GetById(id)
 
 }
 func (r *userRepository) Update(user *models.User) error {
