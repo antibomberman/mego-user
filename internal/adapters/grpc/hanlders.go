@@ -30,10 +30,11 @@ func (s serverAPI) Find(ctx context.Context, req *pb.FindUserRequest) (*pb.FindU
 	}, nil
 }
 func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserDetails, error) {
+	log.Println("GetById", req.Id)
 	if req.Id == "" {
 		return nil, fmt.Errorf("invalid id")
 	}
-	log.Println("GetById", req.Id)
+
 	userDetails, err := s.service.GetById(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
