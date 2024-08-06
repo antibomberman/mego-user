@@ -18,6 +18,10 @@ type UserService interface {
 	GetByToken(token string) (*models.UserDetails, error)
 	GetByEmail(email string) (*models.UserDetails, error)
 	GetByPhone(phone string) (*models.UserDetails, error)
+	Create(user *models.CreateUserRequest) (*models.UserDetails, error)
+	Update(id string, user *models.UpdateUserRequest) (*models.UserDetails, error)
+	Delete(id string) error
+	ForceDelete(id string) error
 }
 
 type userService struct {
@@ -103,4 +107,33 @@ func (s *userService) GetByPhone(phone string) (*models.UserDetails, error) {
 		return nil, fmt.Errorf("invalid phone")
 	}
 	return s.GetById(user.Id)
+}
+func (s *userService) Create(data *models.CreateUserRequest) (*models.UserDetails, error) {
+	newUser, err := s.userRepository.Create(data)
+	if err != nil {
+		return nil, fmt.Errorf("error creating user: %v", err)
+	}
+	userDetail := dto.ToUserDetail(newUser)
+	return userDetail, nil
+}
+func (s *userService) Update(id string, data *models.UpdateUserRequest) (*models.UserDetails, error) {
+	err := s.userRepository.Update(id, data)
+	if err != nil {
+		return nil, fmt.Errorf("error updating user: %v", err)
+	}
+	return s.GetById(id)
+}
+func (s *userService) Delete(id string) error {
+	err := s.userRepository.Delete(id)
+	if err != nil {
+		return fmt.Errorf("error deleting user: %v", err)
+	}
+	return nil
+}
+func (s *userService) ForceDelete(id string) error {
+	err := s.userRepository.Delete(id)
+	if err != nil {
+		return fmt.Errorf("error deleting user: %v", err)
+	}
+	return nil
 }

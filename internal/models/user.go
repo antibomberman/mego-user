@@ -14,6 +14,9 @@ type User struct {
 	Password   sql.NullString `db:"password" json:"-"`
 	Phone      sql.NullString `db:"phone" json:"phone"`
 	Avatar     sql.NullString `db:"avatar" json:"avatar"`
+	About      sql.NullString `db:"about" json:"about"`
+	Theme      sql.NullString `db:"theme" json:"theme"`
+	Lang       sql.NullString `db:"lang" json:"lang"`
 	CreatedAt  sql.NullTime   `db:"created_at" json:"created_at"`
 	UpdatedAt  sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt  sql.NullTime   `db:"deleted_at" json:"deleted_at"`
@@ -27,6 +30,9 @@ type UserDetails struct {
 	Email      string    `db:"email" json:"email"`
 	Phone      string    `db:"phone" json:"phone"`
 	Avatar     string    `db:"avatar" json:"avatar"`
+	About      string    `db:"about" json:"about"`
+	Theme      string    `db:"theme" json:"theme"`
+	Lang       string    `db:"lang" json:"lang"`
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
 	DeletedAt  time.Time `db:"deleted_at" json:"deleted_at"`
@@ -40,7 +46,9 @@ type CreateUserRequest struct {
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	Avatar     string `json:"avatar"`
-	Password   string `json:"password"`
+	About      string `json:"about"`
+	Theme      string `db:"theme" json:"theme"`
+	Lang       string `db:"lang" json:"lang"`
 }
 
 type UpdateUserRequest struct {
@@ -50,5 +58,7 @@ type UpdateUserRequest struct {
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	Avatar     string `json:"avatar"`
-	Password   string `json:"password"`
+	About      string `json:"about"`
+	Theme      string `json:"theme"`
+	Lang       string `json:"lang"`
 }

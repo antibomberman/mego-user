@@ -13,9 +13,11 @@ type UserRepository interface {
 	GetByEmail(string) (*models.User, error)
 	GetByPhone(string) (*models.User, error)
 	Find(startIndex int, size int, sort, search string) ([]models.User, error)
-	Create(data *models.User) (*models.User, error)
-	Update(data *models.User) error
+	Create(data *models.CreateUserRequest) (*models.User, error)
+	Update(id string, data *models.UpdateUserRequest) error
 	Delete(id string) error
+	ForceDelete(id string) error
+	Count() (int, error)
 }
 type userRepository struct {
 	db    *sqlx.DB
@@ -84,24 +86,24 @@ func (r *userRepository) GetByPhone(phone string) (*models.User, error) {
 	}
 	return &user, nil
 }
-func (r *userRepository) Create(data *models.User) (*models.User, error) {
+func (r *userRepository) Create(data *models.CreateUserRequest) (*models.User, error) {
 	query := `
-		INSERT INTO users (first_name, middle_name, last_name, email, phone)
-        VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO users (first_name, middle_name, last_name, email)
+        VALUES ($1, $2, $3, $4)
         RETURNING id
     `
 	id := ""
-	err := r.db.QueryRowx(query, data.FirstName, data.MiddleName, data.LastName, data.Email, data.Phone).Scan(&id)
+	err := r.db.QueryRowx(query, data.FirstName, data.MiddleName, data.LastName, data.Email).Scan(&id)
 
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	return r.GetById(id)
 
 }
-func (r *userRepository) Update(user *models.User) error {
-	_, err := r.db.Exec("UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, phone = $6 WHERE id = $1",
-		user.Id, user.FirstName, user.MiddleName, user.LastName, user.Email, user.Phone)
+func (r *userRepository) Update(id string, user *models.UpdateUserRequest) error {
+	_, err := r.db.Exec("UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, phone = $6, avatar = $7,about = $8,theme = $9,lang = 10 WHERE id = $1",
+		id, user.FirstName, user.MiddleName, user.LastName, user.Email, user.Phone, user.Avatar, user.About, user.Theme, user.Lang)
 	if err != nil {
 		return err
 	}
@@ -113,6 +115,10 @@ func (r *userRepository) Delete(id string) error {
 		return err
 	}
 	return nil
+}
+func (r *userRepository) ForceDelete(id string) error {
+	_, err := r.db.Exec("DELETE FROM users WHERE id = $1", id)
+	return err
 }
 func (r *userRepository) Count() (int, error) {
 	var count int

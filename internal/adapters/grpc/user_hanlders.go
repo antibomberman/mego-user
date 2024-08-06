@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "github.com/antibomberman/mego-protos/gen/go/user"
 	"github.com/antibomberman/mego-user/internal/dto"
+	"github.com/antibomberman/mego-user/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -29,7 +30,7 @@ func (s serverAPI) Find(ctx context.Context, req *pb.FindUserRequest) (*pb.FindU
 		NexPageToken: nextPageToken,
 	}, nil
 }
-func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserDetails, error) {
+func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserResponse, error) {
 	log.Println("GetById", req.Id)
 	if req.Id == "" {
 		return nil, fmt.Errorf("invalid id")
@@ -39,9 +40,13 @@ func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserDetails, er
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return dto.ToPbUserDetail(userDetails), nil
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserDetails, error) {
+func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserResponse, error) {
 	if req.Email == "" {
 		return nil, fmt.Errorf("invalid email")
 	}
@@ -49,9 +54,13 @@ func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserDetai
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return dto.ToPbUserDetail(userDetails), nil
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserDetails, error) {
+func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserResponse, error) {
 	if req.Phone == "" {
 		return nil, fmt.Errorf("invalid phone number")
 	}
@@ -59,24 +68,79 @@ func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserDetai
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return dto.ToPbUserDetail(userDetails), nil
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-func (s serverAPI) GetByToken(ctx context.Context, req *pb.Token) (*pb.UserDetails, error) {
+func (s serverAPI) GetByToken(ctx context.Context, req *pb.Token) (*pb.UserResponse, error) {
 	token := req.Token
 	userDetails, err := s.service.GetByToken(token)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return dto.ToPbUserDetail(userDetails), nil
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-
-func (s serverAPI) Create(context.Context, *pb.CreateUserRequest) (*pb.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (s serverAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
+	user := models.CreateUserRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Phone:     req.Phone,
+	}
+	userDetails, err := s.service.Create(&user)
+	if err != nil {
+		return &pb.UserResponse{
+			Success: false,
+			Message: err.Error(),
+			User:    nil,
+		}, err
+	}
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-func (s serverAPI) Update(context.Context, *pb.UpdateUserRequest) (*pb.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+	user := models.UpdateUserRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Phone:     req.Phone,
+	}
+	userDetails, err := s.service.Update(req.Id, &user)
+	if err != nil {
+		return &pb.UserResponse{
+			Success: false,
+			Message: err.Error(),
+			User:    nil,
+		}, err
+	}
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    dto.ToPbUserDetail(userDetails),
+	}, nil
 }
-func (s serverAPI) Delete(context.Context, *pb.Id) (*pb.UserDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+func (s serverAPI) Delete(ctx context.Context, req *pb.Id) (*pb.UserResponse, error) {
+	err := s.service.Delete(req.Id)
+	if err != nil {
+		return &pb.UserResponse{
+			Success: false,
+			Message: err.Error(),
+			User:    nil,
+		}, err
+	}
+	return &pb.UserResponse{
+		Success: true,
+		Message: "",
+		User:    nil,
+	}, nil
 }
