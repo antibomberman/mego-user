@@ -65,6 +65,7 @@ func (s *userService) Find(pageSize int, pageToken, sort, search string) ([]*mod
 }
 func (s *userService) GetById(id string) (*models.UserDetails, error) {
 	user, err := s.userRepository.GetById(id)
+
 	fmt.Printf("User: %+v", user)
 	if err != nil {
 		log.Printf("Error getting user by ID: %v", err)
