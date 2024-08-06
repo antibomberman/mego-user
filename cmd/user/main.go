@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	adapter "github.com/antibomberman/mego-user/internal/adapters/grpc"
+	"github.com/antibomberman/mego-user/internal/clients"
 	"github.com/antibomberman/mego-user/internal/config"
 	"github.com/antibomberman/mego-user/internal/database"
 	"github.com/antibomberman/mego-user/internal/repositories"
-	"github.com/antibomberman/mego-user/internal/secure"
 	"github.com/antibomberman/mego-user/internal/services"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -33,10 +33,10 @@ func main() {
 		log.Fatal("redis connection error")
 	}
 	log.Println("Connected to Redis")
+	authClient, err := clients.NewPostClient(cfg.AuthServerAddress)
 
-	scr := secure.NewSecure(cfg)
 	userRepository := repositories.NewUserRepository(db, rdb)
-	userService := services.NewUserService(userRepository, scr)
+	userService := services.NewUserService(userRepository, authClient)
 
 	l, err := net.Listen("tcp", ":"+cfg.UserServiceServerPort)
 	if err != nil {

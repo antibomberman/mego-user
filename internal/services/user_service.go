@@ -1,11 +1,13 @@
 package services
 
 import (
+	"context"
 	"fmt"
+	pb "github.com/antibomberman/mego-protos/gen/go/auth"
+	"github.com/antibomberman/mego-user/internal/clients"
 	"github.com/antibomberman/mego-user/internal/dto"
 	"github.com/antibomberman/mego-user/internal/models"
 	"github.com/antibomberman/mego-user/internal/repositories"
-	"github.com/antibomberman/mego-user/internal/secure"
 	"github.com/antibomberman/mego-user/pkg/utils"
 	"log"
 )
@@ -13,8 +15,6 @@ import (
 type UserService interface {
 	Find(pageSize int, pageToken, sort, search string) ([]*models.UserDetails, string, error)
 	GetById(string) (*models.UserDetails, error)
-	LoginByEmail(email, code string) (string, error)
-	LoginByEmailSendCode(email string) error
 	GetByToken(token string) (*models.UserDetails, error)
 	GetByEmail(email string) (*models.UserDetails, error)
 	GetByPhone(phone string) (*models.UserDetails, error)
@@ -22,11 +22,11 @@ type UserService interface {
 
 type userService struct {
 	userRepository repositories.UserRepository
-	secure         secure.Secure
+	authClient     *clients.AuthClient
 }
 
-func NewUserService(userRepo repositories.UserRepository, secure secure.Secure) UserService {
-	return &userService{userRepository: userRepo, secure: secure}
+func NewUserService(userRepo repositories.UserRepository, client *clients.AuthClient) UserService {
+	return &userService{userRepository: userRepo, authClient: client}
 }
 
 func (s *userService) Find(pageSize int, pageToken, sort, search string) ([]*models.UserDetails, string, error) {
@@ -81,11 +81,14 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 	}, nil
 }
 func (s *userService) GetByToken(token string) (*models.UserDetails, error) {
-	claims, err := s.secure.Parse(token)
+	response, err := s.authClient.Parse(context.Background(), &pb.ParseRequest{Token: token})
 	if err != nil {
 		return nil, fmt.Errorf("error parsing token: %v", err)
 	}
-	return s.GetById(claims.UserId)
+	if response.Success != true {
+		return nil, fmt.Errorf("invalid token")
+	}
+	return s.GetById(response.UserId)
 }
 func (s *userService) GetByEmail(email string) (*models.UserDetails, error) {
 	user, err := s.userRepository.GetByEmail(email)
@@ -100,43 +103,4 @@ func (s *userService) GetByPhone(phone string) (*models.UserDetails, error) {
 		return nil, fmt.Errorf("invalid phone")
 	}
 	return s.GetById(user.Id)
-}
-
-func (s *userService) LoginByEmail(email, code string) (string, error) {
-	user, err := s.userRepository.GetByEmail(email)
-	if err != nil {
-		log.Printf("Error getting user by email: %v", err)
-		return "", fmt.Errorf("invalid email")
-	}
-
-	savedCode, err := s.userRepository.GetEmailCode(email)
-	if err != nil {
-		log.Printf("Error getting email code: %v", err)
-		return "", fmt.Errorf("invalid code")
-	}
-	if savedCode != code {
-		log.Printf("Invalid code != saved code")
-		return "", fmt.Errorf("invalid code")
-	}
-
-	token, err := s.secure.Generate(user.Id)
-	if err != nil {
-		log.Printf("Error generating token: %v", err)
-		return "", fmt.Errorf("error generating token: %v", err)
-	}
-	return token, nil
-}
-
-func (s *userService) LoginByEmailSendCode(email string) error {
-	_, err := s.userRepository.GetByEmail(email)
-	if err != nil {
-		return fmt.Errorf("invalid email")
-	}
-	code := generateRandomCode(9999, 1000)
-	return s.userRepository.SetEmailCode(email, code)
-}
-
-func generateRandomCode(max, min int) string {
-	//return strconv.Itoa(rand.IntN(max-min) + min)
-	return "1234"
 }

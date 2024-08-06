@@ -1,13 +1,11 @@
 package repositories
 
 import (
-	"context"
 	"github.com/antibomberman/mego-user/internal/models"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"log"
-	"time"
 )
 
 type UserRepository interface {
@@ -18,8 +16,6 @@ type UserRepository interface {
 	Create(data *models.User) (*models.User, error)
 	Update(data *models.User) error
 	Delete(id string) error
-	SetEmailCode(id string, code string) error
-	GetEmailCode(id string) (string, error)
 }
 type userRepository struct {
 	db    *sqlx.DB
@@ -125,12 +121,4 @@ func (r *userRepository) Count() (int, error) {
 		return 0, err
 	}
 	return count, nil
-}
-
-func (r *userRepository) SetEmailCode(email, code string) error {
-	err := r.redis.Set(context.Background(), email, code, time.Minute*5).Err()
-	return err
-}
-func (r *userRepository) GetEmailCode(email string) (string, error) {
-	return r.redis.Get(context.Background(), email).Result()
 }
