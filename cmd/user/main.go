@@ -34,7 +34,13 @@ func main() {
 	}
 	log.Println("Connected to Redis")
 	authClient, err := clients.NewAuthClient(cfg.AuthServiceAddress)
+	if err != nil {
+		log.Println("Failed to connect to auth service:", err)
+	}
 	storageClient, err := clients.NewStorageClient(cfg.StorageServiceAddress)
+	if err != nil {
+		log.Println("Failed to connect to storage service:", err)
+	}
 
 	userRepository := repositories.NewUserRepository(db, rdb)
 	userService := services.NewUserService(userRepository, authClient, storageClient)

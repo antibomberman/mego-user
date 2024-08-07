@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	pb "github.com/antibomberman/mego-protos/gen/go/user"
 	"github.com/antibomberman/mego-user/internal/dto"
@@ -82,22 +83,10 @@ func (s serverAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.U
 	}
 	return dto.ToPbUserDetail(userDetails), nil
 }
+
+// Update delete "update" method
 func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserDetails, error) {
-	user := models.UpdateUserRequest{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-	}
-	//if req.Avatar != nil {
-	//	user.Avatar = &models.NewAvatar{
-	//		FileName: req.Avatar.FileName,
-	//		Data:     req.Avatar.Data,
-	//	}
-	//}
-	userDetails, err := s.service.Update(req.Id, &user)
-	if err != nil {
-		return nil, err
-	}
-	return dto.ToPbUserDetail(userDetails), nil
+	return nil, errors.New("not implemented")
 }
 func (s serverAPI) Delete(ctx context.Context, req *pb.Id) (*pb.UserDetails, error) {
 	err := s.service.Delete(req.Id)
