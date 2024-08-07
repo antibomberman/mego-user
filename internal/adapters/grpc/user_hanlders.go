@@ -24,13 +24,11 @@ func (s serverAPI) Find(ctx context.Context, req *pb.FindUserRequest) (*pb.FindU
 	}
 
 	return &pb.FindUserResponse{
-		Success:      true,
-		Message:      "",
 		Users:        userResponses,
 		NexPageToken: nextPageToken,
 	}, nil
 }
-func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserResponse, error) {
+func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserDetails, error) {
 	log.Println("GetById", req.Id)
 	if req.Id == "" {
 		return nil, fmt.Errorf("invalid id")
@@ -40,13 +38,9 @@ func (s serverAPI) GetById(ctx context.Context, req *pb.Id) (*pb.UserResponse, e
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserResponse, error) {
+func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserDetails, error) {
 	if req.Email == "" {
 		return nil, fmt.Errorf("invalid email")
 	}
@@ -54,13 +48,9 @@ func (s serverAPI) GetByEmail(ctx context.Context, req *pb.Email) (*pb.UserRespo
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserResponse, error) {
+func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserDetails, error) {
 	if req.Phone == "" {
 		return nil, fmt.Errorf("invalid phone number")
 	}
@@ -68,26 +58,18 @@ func (s serverAPI) GetByPhone(ctx context.Context, req *pb.Phone) (*pb.UserRespo
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) GetByToken(ctx context.Context, req *pb.Token) (*pb.UserResponse, error) {
+func (s serverAPI) GetByToken(ctx context.Context, req *pb.Token) (*pb.UserDetails, error) {
 	token := req.Token
 	userDetails, err := s.service.GetByToken(token)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
+func (s serverAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserDetails, error) {
 	user := models.CreateUserRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -96,19 +78,11 @@ func (s serverAPI) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.U
 	}
 	userDetails, err := s.service.Create(&user)
 	if err != nil {
-		return &pb.UserResponse{
-			Success: false,
-			Message: err.Error(),
-			User:    nil,
-		}, err
+		return nil, err
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserDetails, error) {
 	user := models.UpdateUserRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -117,30 +91,14 @@ func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.U
 	}
 	userDetails, err := s.service.Update(req.Id, &user)
 	if err != nil {
-		return &pb.UserResponse{
-			Success: false,
-			Message: err.Error(),
-			User:    nil,
-		}, err
+		return nil, err
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    dto.ToPbUserDetail(userDetails),
-	}, nil
+	return dto.ToPbUserDetail(userDetails), nil
 }
-func (s serverAPI) Delete(ctx context.Context, req *pb.Id) (*pb.UserResponse, error) {
+func (s serverAPI) Delete(ctx context.Context, req *pb.Id) (*pb.UserDetails, error) {
 	err := s.service.Delete(req.Id)
 	if err != nil {
-		return &pb.UserResponse{
-			Success: false,
-			Message: err.Error(),
-			User:    nil,
-		}, err
+		return nil, err
 	}
-	return &pb.UserResponse{
-		Success: true,
-		Message: "",
-		User:    nil,
-	}, nil
+	return nil, nil
 }
