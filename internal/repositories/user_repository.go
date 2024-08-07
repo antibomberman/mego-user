@@ -1,7 +1,11 @@
 package repositories
 
 import (
+	"context"
+	"fmt"
 	"github.com/antibomberman/mego-user/internal/models"
+	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
@@ -11,6 +15,7 @@ import (
 type UserRepository interface {
 	GetById(string) (*models.User, error)
 	GetByEmail(string) (*models.User, error)
+	ExistsEmail(string) bool
 	GetByPhone(string) (*models.User, error)
 	Find(startIndex int, size int, sort, search string) ([]models.User, error)
 	Create(data *models.CreateUserRequest) (*models.User, error)
@@ -18,6 +23,8 @@ type UserRepository interface {
 	Delete(id string) error
 	ForceDelete(id string) error
 	Count() (int, error)
+	EmailUpdateSaveCode(id, email, code string) error
+	EmailUpdateCheckCode(id, code string) (string, error)
 }
 type userRepository struct {
 	db    *sqlx.DB
@@ -77,6 +84,15 @@ func (r *userRepository) GetByEmail(email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+func (r *userRepository) ExistsEmail(email string) bool {
+	var count int
+	err := r.db.Get(&count, "SELECT COUNT(*) FROM users WHERE email = $1", email)
+	if err != nil {
+		log.Printf("Error checking email existence: %v", err)
+		return false
+	}
+	return count > 0
+}
 func (r *userRepository) GetByPhone(phone string) (*models.User, error) {
 	var user models.User
 	err := r.db.Get(&user, "SELECT * FROM users WHERE phone = $1", phone)
@@ -102,12 +118,63 @@ func (r *userRepository) Create(data *models.CreateUserRequest) (*models.User, e
 
 }
 func (r *userRepository) Update(id string, user *models.User) error {
-	_, err := r.db.Exec("UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, phone = $6, avatar = $7,about = $8,theme = $9,lang = 10 WHERE id = $1",
-		id, user.FirstName, user.MiddleName, user.LastName, user.Email, user.Phone, user.Avatar, user.About, user.Theme, user.Lang)
-	if err != nil {
-		return err
+	query := "UPDATE users SET "
+	args := []interface{}{id}
+	argCount := 1
+
+	if user.FirstName.Valid {
+		query += fmt.Sprintf("first_name = $%d, ", argCount+1)
+		args = append(args, user.FirstName)
+		argCount++
 	}
-	return nil
+	if user.MiddleName.Valid {
+		query += fmt.Sprintf("middle_name = $%d, ", argCount+1)
+		args = append(args, user.MiddleName)
+		argCount++
+	}
+	if user.LastName.Valid {
+		query += fmt.Sprintf("last_name = $%d, ", argCount+1)
+		args = append(args, user.LastName)
+		argCount++
+	}
+	if user.Email.Valid {
+		query += fmt.Sprintf("email = $%d, ", argCount+1)
+		args = append(args, user.Email)
+		argCount++
+	}
+	if user.Phone.Valid {
+		query += fmt.Sprintf("phone = $%d, ", argCount+1)
+		args = append(args, user.Phone)
+		argCount++
+	}
+	if user.Avatar.Valid {
+		query += fmt.Sprintf("avatar = $%d, ", argCount+1)
+		args = append(args, user.Avatar)
+		argCount++
+	}
+	if user.About.Valid {
+		query += fmt.Sprintf("about = $%d, ", argCount+1)
+		args = append(args, user.About)
+		argCount++
+	}
+	if user.Theme.Valid {
+		query += fmt.Sprintf("theme = $%d, ", argCount+1)
+		args = append(args, user.Theme)
+		argCount++
+	}
+	if user.Lang.Valid {
+		query += fmt.Sprintf("lang = $%d, ", argCount+1)
+		args = append(args, user.Lang)
+		argCount++
+	}
+
+	// Remove trailing comma and space
+	query = strings.TrimSuffix(query, ", ")
+
+	query += " WHERE id = $1"
+
+	_, err := r.db.Exec(query, args...)
+	return err
 }
 func (r *userRepository) Delete(id string) error {
 	_, err := r.db.Exec("UPDATE users SET deleted_at = NOW() WHERE id = $1", id)
@@ -127,4 +194,17 @@ func (r *userRepository) Count() (int, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *userRepository) EmailUpdateSaveCode(id, email, code string) error {
+	return r.redis.Set(context.Background(), fmt.Sprintf("email_update:%s_%s", id, code), email, time.Minute*5).Err()
+}
+
+func (r *userRepository) EmailUpdateCheckCode(id, code string) (string, error) {
+	result, err := r.redis.Get(context.Background(), fmt.Sprintf("email_update:%s_%s", id, code)).Result()
+	if err != nil {
+		return "", fmt.Errorf("code not found")
+	}
+
+	return result, nil
 }

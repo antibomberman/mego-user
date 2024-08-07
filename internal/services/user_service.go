@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	pb "github.com/antibomberman/mego-protos/gen/go/auth"
 	"github.com/antibomberman/mego-protos/gen/go/storage"
@@ -24,6 +25,11 @@ type UserService interface {
 	Update(id string, user *models.UpdateUserRequest) (*models.UserDetails, error)
 	Delete(id string) error
 	ForceDelete(id string) error
+	UpdateProfile(id, firstName, middleName, lastName, about string, avatar *models.NewAvatar) (*models.UserDetails, error)
+	UpdateLang(id, lang string) error
+	UpdateTheme(id, theme string) error
+	UpdateEmailSendCode(id, email string) error
+	UpdateEmail(id, code string) error
 }
 
 type userService struct {
@@ -164,4 +170,86 @@ func (s *userService) ForceDelete(id string) error {
 		return fmt.Errorf("error deleting user: %v", err)
 	}
 	return nil
+}
+
+func (s *userService) UpdateProfile(id, firsName, middleName, lastName, about string, avatar *models.NewAvatar) (*models.UserDetails, error) {
+	user := &models.User{
+		FirstName:  sql.NullString{String: firsName, Valid: true},
+		MiddleName: sql.NullString{String: middleName, Valid: true},
+		LastName:   sql.NullString{String: lastName, Valid: true},
+		About:      sql.NullString{String: about, Valid: true},
+	}
+
+	if avatar != nil {
+		oldUser, err := s.userRepository.GetById(id)
+		if err != nil {
+			return nil, fmt.Errorf("user not found")
+		}
+		if oldUser.Avatar.String != "" {
+			_, err := s.storageClient.DeleteObject(context.Background(), &storage.DeleteObjectRequest{FileName: oldUser.Avatar.String})
+			if err != nil {
+				return nil, err
+			}
+		}
+		object, err := s.storageClient.PutObject(context.Background(), &storage.PutObjectRequest{
+			FileName: avatar.FileName,
+			Data:     avatar.Data,
+		})
+		if err != nil {
+			return nil, err
+		}
+		user.Avatar = sql.NullString{String: object.FileName, Valid: true}
+	}
+	err := s.userRepository.Update(id, user)
+	if err != nil {
+		return nil, fmt.Errorf("error updating user: %v", err)
+	}
+	return s.GetById(id)
+}
+func (s *userService) UpdateLang(id, lang string) error {
+	user := &models.User{
+		Lang: sql.NullString{String: lang, Valid: true},
+	}
+
+	err := s.userRepository.Update(id, user)
+	if err != nil {
+		return fmt.Errorf("error updating user: %v", err)
+	}
+	return nil
+}
+func (s *userService) UpdateTheme(id, theme string) error {
+	user := &models.User{
+		Theme: sql.NullString{String: theme, Valid: true},
+	}
+
+	err := s.userRepository.Update(id, user)
+	if err != nil {
+		return fmt.Errorf("error updating user: %v", err)
+	}
+	return nil
+}
+
+func (s *userService) UpdateEmailSendCode(id, email string) error {
+	exists := s.userRepository.ExistsEmail(email)
+	if exists {
+		return errors.New("email already exists")
+	}
+	code := generateRandomCode(1000, 9999)
+	return s.userRepository.EmailUpdateSaveCode(id, email, code)
+
+}
+func (s *userService) UpdateEmail(id, code string) error {
+	email, err := s.userRepository.EmailUpdateCheckCode(id, code)
+	if err != nil {
+		return errors.New("invalid code")
+	}
+	err = s.userRepository.Update(id, &models.User{Email: sql.NullString{String: email, Valid: true}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func generateRandomCode(max, min int) string {
+	//return strconv.Itoa(rand.IntN(max-min) + min)
+	return "1234"
 }

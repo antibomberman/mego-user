@@ -87,12 +87,12 @@ func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.U
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	}
-	if req.Avatar != nil {
-		user.Avatar = &models.NewAvatar{
-			FileName: req.Avatar.FileName,
-			Data:     req.Avatar.Data,
-		}
-	}
+	//if req.Avatar != nil {
+	//	user.Avatar = &models.NewAvatar{
+	//		FileName: req.Avatar.FileName,
+	//		Data:     req.Avatar.Data,
+	//	}
+	//}
 	userDetails, err := s.service.Update(req.Id, &user)
 	if err != nil {
 		return nil, err
@@ -105,4 +105,56 @@ func (s serverAPI) Delete(ctx context.Context, req *pb.Id) (*pb.UserDetails, err
 		return nil, err
 	}
 	return nil, nil
+}
+
+func (s serverAPI) UpdateProfile(ctx context.Context, req *pb.UpdateProfileRequest) (*pb.UserDetails, error) {
+	avatar := &models.NewAvatar{}
+	if req.Avatar != nil {
+		avatar.FileName = req.Avatar.FileName
+		avatar.Data = req.Avatar.Data
+	} else {
+		avatar = nil
+	}
+	userDetails, err := s.service.UpdateProfile(req.Id, req.FirstName, req.MiddleName, req.LastName, req.About, avatar)
+	if err != nil {
+		return nil, err
+	}
+	return dto.ToPbUserDetail(userDetails), nil
+}
+func (s serverAPI) UpdateLang(ctx context.Context, req *pb.UpdateLangRequest) (*pb.UpdateLangResponse, error) {
+
+	err := s.service.UpdateLang(req.Id, req.Lang)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UpdateLangResponse{
+		Success: true,
+	}, nil
+}
+func (s serverAPI) UpdateTheme(ctx context.Context, req *pb.UpdateThemeRequest) (*pb.UpdateThemeResponse, error) {
+	err := s.service.UpdateTheme(req.Id, req.Theme)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UpdateThemeResponse{
+		Success: true,
+	}, nil
+}
+func (s serverAPI) UpdateEmail(ctx context.Context, req *pb.UpdateEmailRequest) (*pb.UpdateEmailResponse, error) {
+	err := s.service.UpdateEmail(req.UserId, req.Code)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UpdateEmailResponse{
+		Success: true,
+	}, nil
+}
+func (s serverAPI) UpdateEmailSendCode(ctx context.Context, req *pb.UpdateEmailSendCodeRequest) (*pb.UpdateEmailSendCodeResponse, error) {
+	err := s.service.UpdateEmailSendCode(req.UserId, req.Email)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UpdateEmailSendCodeResponse{
+		Success: true,
+	}, nil
 }
