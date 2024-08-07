@@ -86,8 +86,12 @@ func (s serverAPI) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.U
 	user := models.UpdateUserRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		Email:     req.Email,
-		Phone:     req.Phone,
+	}
+	if req.Avatar != nil {
+		user.Avatar = &models.NewAvatar{
+			FileName: req.Avatar.FileName,
+			Data:     req.Avatar.Data,
+		}
 	}
 	userDetails, err := s.service.Update(req.Id, &user)
 	if err != nil {

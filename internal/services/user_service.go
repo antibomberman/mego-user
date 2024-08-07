@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	pb "github.com/antibomberman/mego-protos/gen/go/auth"
+	"github.com/antibomberman/mego-protos/gen/go/storage"
 	"github.com/antibomberman/mego-user/internal/clients"
 	"github.com/antibomberman/mego-user/internal/dto"
 	"github.com/antibomberman/mego-user/internal/models"
@@ -27,10 +29,11 @@ type UserService interface {
 type userService struct {
 	userRepository repositories.UserRepository
 	authClient     *clients.AuthClient
+	storageClient  *clients.StorageClient
 }
 
-func NewUserService(userRepo repositories.UserRepository, client *clients.AuthClient) UserService {
-	return &userService{userRepository: userRepo, authClient: client}
+func NewUserService(userRepo repositories.UserRepository, client *clients.AuthClient, storageClient *clients.StorageClient) UserService {
+	return &userService{userRepository: userRepo, authClient: client, storageClient: storageClient}
 }
 
 func (s *userService) Find(pageSize int, pageToken, sort, search string) ([]*models.UserDetails, string, error) {
@@ -90,9 +93,6 @@ func (s *userService) GetByToken(token string) (*models.UserDetails, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing token: %v", err)
 	}
-	if response.Success != true {
-		return nil, fmt.Errorf("invalid token")
-	}
 	return s.GetById(response.UserId)
 }
 func (s *userService) GetByEmail(email string) (*models.UserDetails, error) {
@@ -118,7 +118,34 @@ func (s *userService) Create(data *models.CreateUserRequest) (*models.UserDetail
 	return userDetail, nil
 }
 func (s *userService) Update(id string, data *models.UpdateUserRequest) (*models.UserDetails, error) {
-	err := s.userRepository.Update(id, data)
+
+	user := &models.User{
+		FirstName: sql.NullString{String: data.FirstName},
+		LastName:  sql.NullString{String: data.LastName},
+	}
+	if data.Avatar != nil {
+		oldUser, err := s.userRepository.GetById(id)
+		if err != nil {
+			return nil, fmt.Errorf("user not found")
+		}
+		if oldUser.Avatar.String != "" {
+			_, err := s.storageClient.DeleteObject(context.Background(), &storage.DeleteObjectRequest{FileName: oldUser.Avatar.String})
+			if err != nil {
+				return nil, err
+			}
+		}
+		object, err := s.storageClient.PutObject(context.Background(), &storage.PutObjectRequest{
+			FileName: data.Avatar.FileName,
+			Data:     data.Avatar.Data,
+		})
+		if err != nil {
+			return nil, err
+		}
+		user.Avatar = sql.NullString{String: object.FileName, Valid: true}
+
+	}
+	err := s.userRepository.Update(id, user)
+
 	if err != nil {
 		return nil, fmt.Errorf("error updating user: %v", err)
 	}

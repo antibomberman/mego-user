@@ -1,19 +1,19 @@
 package clients
 
 import (
-	pb "github.com/antibomberman/mego-protos/gen/go/auth"
+	pb "github.com/antibomberman/mego-protos/gen/go/storage"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type AuthClient struct {
-	pb.AuthServiceClient
+type StorageClient struct {
+	pb.StorageServiceClient
 }
 
-func NewAuthClient(address string) (*AuthClient, error) {
+func NewStorageClient(address string) (*StorageClient, error) {
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
-	return &AuthClient{pb.NewAuthServiceClient(conn)}, nil
+	return &StorageClient{pb.NewStorageServiceClient(conn)}, nil
 }

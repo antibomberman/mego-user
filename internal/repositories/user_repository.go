@@ -14,7 +14,7 @@ type UserRepository interface {
 	GetByPhone(string) (*models.User, error)
 	Find(startIndex int, size int, sort, search string) ([]models.User, error)
 	Create(data *models.CreateUserRequest) (*models.User, error)
-	Update(id string, data *models.UpdateUserRequest) error
+	Update(id string, data *models.User) error
 	Delete(id string) error
 	ForceDelete(id string) error
 	Count() (int, error)
@@ -101,7 +101,7 @@ func (r *userRepository) Create(data *models.CreateUserRequest) (*models.User, e
 	return r.GetById(id)
 
 }
-func (r *userRepository) Update(id string, user *models.UpdateUserRequest) error {
+func (r *userRepository) Update(id string, user *models.User) error {
 	_, err := r.db.Exec("UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, phone = $6, avatar = $7,about = $8,theme = $9,lang = 10 WHERE id = $1",
 		id, user.FirstName, user.MiddleName, user.LastName, user.Email, user.Phone, user.Avatar, user.About, user.Theme, user.Lang)
 	if err != nil {

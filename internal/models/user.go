@@ -52,13 +52,17 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name"`
-	LastName   string `json:"last_name"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Avatar     string `json:"avatar"`
-	About      string `json:"about"`
-	Theme      string `json:"theme"`
-	Lang       string `json:"lang"`
+	FirstName  string     `json:"first_name"`
+	MiddleName string     `json:"middle_name"`
+	LastName   string     `json:"last_name"`
+	Email      string     `json:"email"`
+	Phone      string     `json:"phone"`
+	Avatar     *NewAvatar `json:"avatar"`
+	About      string     `json:"about"`
+	Theme      string     `json:"theme"`
+	Lang       string     `json:"lang"`
+}
+type NewAvatar struct {
+	FileName string `json:"file_name"`
+	Data     []byte `json:"data"`
 }

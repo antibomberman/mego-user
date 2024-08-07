@@ -17,7 +17,8 @@ type Config struct {
 
 	JWTSecret             string `env:"JWT_SECRET" required:"true"`
 	UserServiceServerPort string `env:"USER_SERVICE_SERVER_PORT" required:"true"`
-	AuthServerAddress     string `env:"AUTH_SERVER_ADDRESS" required:"true"`
+	AuthServiceAddress    string `env:"AUTH_SERVICE_ADDRESS" required:"true"`
+	StorageServiceAddress string `env:"STORAGE_SERVICE_ADDRESS" required:"true"`
 }
 
 func Load() *Config {

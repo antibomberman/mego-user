@@ -33,10 +33,11 @@ func main() {
 		log.Fatal("redis connection error")
 	}
 	log.Println("Connected to Redis")
-	authClient, err := clients.NewPostClient(cfg.AuthServerAddress)
+	authClient, err := clients.NewAuthClient(cfg.AuthServiceAddress)
+	storageClient, err := clients.NewStorageClient(cfg.StorageServiceAddress)
 
 	userRepository := repositories.NewUserRepository(db, rdb)
-	userService := services.NewUserService(userRepository, authClient)
+	userService := services.NewUserService(userRepository, authClient, storageClient)
 
 	l, err := net.Listen("tcp", ":"+cfg.UserServiceServerPort)
 	if err != nil {
