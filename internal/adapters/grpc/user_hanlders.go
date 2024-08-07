@@ -101,6 +101,7 @@ func (s serverAPI) UpdateProfile(ctx context.Context, req *pb.UpdateProfileReque
 	if req.Avatar != nil {
 		avatar.FileName = req.Avatar.FileName
 		avatar.Data = req.Avatar.Data
+		avatar.ContentType = req.Avatar.ContentType
 	} else {
 		avatar = nil
 	}

@@ -192,8 +192,9 @@ func (s *userService) UpdateProfile(id, firsName, middleName, lastName, about st
 			}
 		}
 		object, err := s.storageClient.PutObject(context.Background(), &storage.PutObjectRequest{
-			FileName: avatar.FileName,
-			Data:     avatar.Data,
+			FileName:    avatar.FileName,
+			Data:        avatar.Data,
+			ContentType: avatar.ContentType,
 		})
 		if err != nil {
 			return nil, err

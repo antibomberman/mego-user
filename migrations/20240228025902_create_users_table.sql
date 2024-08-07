@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users
     phone       varchar(255),
     avatar      varchar(255),
     about       text,
-    theme       int DEFAULT 0,
+    theme       varchar(255),
     lang        varchar(255) default 'ru',
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

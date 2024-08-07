@@ -63,6 +63,7 @@ type UpdateUserRequest struct {
 	Lang       string     `json:"lang"`
 }
 type NewAvatar struct {
-	FileName string `json:"file_name"`
-	Data     []byte `json:"data"`
+	FileName    string `json:"file_name"`
+	Data        []byte `json:"data"`
+	ContentType string `json:"content_type"`
 }
