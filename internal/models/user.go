@@ -29,7 +29,7 @@ type UserDetails struct {
 	LastName   string    `db:"last_name" json:"last_name"`
 	Email      string    `db:"email" json:"email"`
 	Phone      string    `db:"phone" json:"phone"`
-	Avatar     string    `db:"avatar" json:"avatar"`
+	Avatar     *Avatar   `db:"avatar" json:"avatar"`
 	About      string    `db:"about" json:"about"`
 	Theme      string    `db:"theme" json:"theme"`
 	Lang       string    `db:"lang" json:"lang"`
@@ -45,7 +45,6 @@ type CreateUserRequest struct {
 	LastName   string `json:"last_name"`
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
-	Avatar     string `json:"avatar"`
 	About      string `json:"about"`
 	Theme      string `db:"theme" json:"theme"`
 	Lang       string `db:"lang" json:"lang"`
@@ -64,6 +63,10 @@ type UpdateUserRequest struct {
 }
 type NewAvatar struct {
 	FileName    string `json:"file_name"`
-	Data        []byte `json:"data"`
 	ContentType string `json:"content_type"`
+	Data        []byte `json:"data"`
+}
+type Avatar struct {
+	FileName string `json:"file_name"`
+	Url      string `json:"url"`
 }

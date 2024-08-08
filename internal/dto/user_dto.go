@@ -7,6 +7,7 @@ import (
 )
 
 func ToPbUserDetail(details *models.UserDetails) *pb.UserDetails {
+
 	pbUserDetails := &pb.UserDetails{
 		Id:         details.Id,
 		FirstName:  details.FirstName,
@@ -14,7 +15,7 @@ func ToPbUserDetail(details *models.UserDetails) *pb.UserDetails {
 		LastName:   details.LastName,
 		Email:      details.Email,
 		Phone:      details.Phone,
-		Avatar:     details.Avatar,
+		Avatar:     ToPbAvatar(details.Avatar),
 		About:      details.About,
 		Theme:      details.Theme,
 		Lang:       details.Lang,
@@ -24,7 +25,16 @@ func ToPbUserDetail(details *models.UserDetails) *pb.UserDetails {
 	}
 	return pbUserDetails
 }
-func ToUserDetail(user *models.User) *models.UserDetails {
+func ToPbAvatar(avatar *models.Avatar) *pb.Avatar {
+	if avatar == nil {
+		return nil
+	}
+	return &pb.Avatar{
+		FileName: avatar.FileName,
+		Url:      avatar.Url,
+	}
+}
+func ToUserDetail(user *models.User, avatar *models.Avatar) *models.UserDetails {
 	return &models.UserDetails{
 		Id:         user.Id,
 		FirstName:  user.FirstName.String,
@@ -32,7 +42,7 @@ func ToUserDetail(user *models.User) *models.UserDetails {
 		LastName:   user.LastName.String,
 		Email:      user.Email.String,
 		Phone:      user.Phone.String,
-		Avatar:     user.Avatar.String,
+		Avatar:     avatar,
 		About:      user.About.String,
 		Theme:      user.Theme.String,
 		Lang:       user.Lang.String,

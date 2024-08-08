@@ -68,7 +68,7 @@ func (s *userService) Find(pageSize int, pageToken, sort, search string) ([]*mod
 	}
 	var userDetails []*models.UserDetails
 	for _, user := range users {
-		userDetails = append(userDetails, dto.ToUserDetail(&user))
+		userDetails = append(userDetails, dto.ToUserDetail(&user, s.getAvatar(user.Avatar)))
 	}
 	return userDetails, nextPageToken, nil
 }
@@ -88,11 +88,25 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 		LastName:   user.LastName.String,
 		Email:      user.Email.String,
 		Phone:      user.Phone.String,
-		Avatar:     user.Avatar.String,
+		Avatar:     s.getAvatar(user.Avatar),
 		CreatedAt:  user.CreatedAt.Time,
 		UpdatedAt:  user.UpdatedAt.Time,
 		DeletedAt:  user.DeletedAt.Time,
 	}, nil
+}
+func (s *userService) getAvatar(sqlString sql.NullString) *models.Avatar {
+	avatar := &models.Avatar{}
+
+	if sqlString.Valid {
+		objectUrl, err := s.storageClient.GetObjectUrl(context.Background(), &storage.GetObjectUrlRequest{FileName: sqlString.String})
+		if err != nil {
+			log.Printf("Error getting object URL: %v", err)
+			return nil
+		}
+		avatar.Url = objectUrl.Url
+		avatar.FileName = sqlString.String
+	}
+	return nil
 }
 func (s *userService) GetByToken(token string) (*models.UserDetails, error) {
 	response, err := s.authClient.Parse(context.Background(), &pb.ParseRequest{Token: token})
@@ -120,7 +134,7 @@ func (s *userService) Create(data *models.CreateUserRequest) (*models.UserDetail
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %v", err)
 	}
-	userDetail := dto.ToUserDetail(newUser)
+	userDetail := dto.ToUserDetail(newUser, nil)
 	return userDetail, nil
 }
 func (s *userService) Update(id string, data *models.UpdateUserRequest) (*models.UserDetails, error) {
