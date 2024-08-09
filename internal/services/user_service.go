@@ -89,24 +89,13 @@ func (s *userService) GetById(id string) (*models.UserDetails, error) {
 		Email:      user.Email.String,
 		Phone:      user.Phone.String,
 		Avatar:     s.getAvatar(user.Avatar),
+		Lang:       user.Lang.String,
+		About:      user.About.String,
+		Theme:      user.Theme.String,
 		CreatedAt:  user.CreatedAt.Time,
 		UpdatedAt:  user.UpdatedAt.Time,
 		DeletedAt:  user.DeletedAt.Time,
 	}, nil
-}
-func (s *userService) getAvatar(sqlString sql.NullString) *models.Avatar {
-	avatar := &models.Avatar{}
-
-	if sqlString.Valid {
-		objectUrl, err := s.storageClient.GetObjectUrl(context.Background(), &storage.GetObjectUrlRequest{FileName: sqlString.String})
-		if err != nil {
-			log.Printf("Error getting object URL: %v", err)
-			return nil
-		}
-		avatar.Url = objectUrl.Url
-		avatar.FileName = sqlString.String
-	}
-	return nil
 }
 func (s *userService) GetByToken(token string) (*models.UserDetails, error) {
 	response, err := s.authClient.Parse(context.Background(), &pb.ParseRequest{Token: token})
@@ -267,4 +256,20 @@ func (s *userService) UpdateEmail(id, code string) error {
 func generateRandomCode(max, min int) string {
 	//return strconv.Itoa(rand.IntN(max-min) + min)
 	return "1234"
+}
+
+func (s *userService) getAvatar(sqlString sql.NullString) *models.Avatar {
+	avatar := &models.Avatar{}
+
+	if sqlString.Valid {
+		objectUrl, err := s.storageClient.GetObjectUrl(context.Background(), &storage.GetObjectUrlRequest{FileName: sqlString.String})
+		if err != nil {
+			log.Printf("Error getting object URL: %v", err)
+			return nil
+		}
+		avatar.Url = objectUrl.Url
+		avatar.FileName = sqlString.String
+		return avatar
+	}
+	return nil
 }
