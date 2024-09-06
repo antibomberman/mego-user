@@ -10,3 +10,11 @@ tasks:
     cmds:
       - goose -dir migrations postgres "$DATABASE_URL" reset
     silent: true
+  up:
+    cmds:
+      - docker-compose up --build
+    silent: false
+  down:
+    cmds:
+      - docker-compose down
+    silent: false
